@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RetireCoin - Meme Your Way to Retirement</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Press+Start+2P&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f2f5;
+      color: #333;
+    }
+
+    .hero {
+      background: url('https://images.unsplash.com/photo-1580225936015-9f5b75e5e2f7') no-repeat center center;
+      background-size: cover;
+      text-align: center;
+      padding: 80px 20px;
+      color: white;
+    }
+
+    .hero h1 {
+      font-family: 'Comic Neue', cursive;
+      font-size: 48px;
+      margin: 0;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      background-color: #ffffff;
+      color: #333;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 20px;
+    }
+
+    .section {
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    canvas {
+      border: 2px solid #333;
+      background-color: #fffbe6;
+      margin-top: 20px;
+      max-width: 100%;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      background: #222;
+      color: #eee;
+    }
+
+    #gallery img {
+      max-width: 200px;
+      margin: 10px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+    }
+
+    input[type="file"] {
+      margin-top: 20px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      font-size: 18px;
+    }
+
+    ul li {
+      margin-bottom: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      canvas {
+        width: 100%;
+        height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <h1>🚀 RetireCoin</h1>
+    <p>The meme token that helps you retire laughing.</p>
+    <button onclick="connectWallet()" class="btn">Connect Wallet</button>
+    <a href="#game" class="btn">Play The Game</a>
+  </header>
+
+  <section id="about" class="section">
+    <h2>About RetireCoin</h2>
+    <p>RetireCoin is the ultimate meme coin built for fun and financial freedom. With a strong community, no stress, and plenty of memes, we’re here to make retirement a joke – a good one.</p>
+  </section>
+
+  <section id="tokenomics" class="section">
+    <h2>Tokenomics</h2>
+    <ul>
+      <li>🔁 1% Reflections</li>
+      <li>💧 2% Liquidity</li>
+      <li>🔥 1% Burn</li>
+      <li>🎉 96% Community Owned</li>
+    </ul>
+  </section>
+
+  <section id="game" class="section">
+    <h2>🏆 RetireDash Game</h2>
+    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    <p>Score: <span id="score">0</span> | High Score: <span id="highScore">0</span></p>
+  </section>
+
+  <section id="gallery" class="section">
+    <h2>📸 Meme Gallery</h2>
+    <input type="file" id="memeUpload" accept="image/*" />
+    <div id="memeGallery"></div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 RetireCoin. Meme responsibly.</p>
+  </footer>
+
+  <script>
+    // Game Logic
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("score");
+    const highScoreDisplay = document.getElementById("highScore");
+
+    let score = 0;
+    let highScore = localStorage.getItem("highScore") || 0;
+    highScoreDisplay.textContent = highScore;
+
+    let x = 50;
+    let y = 150;
+    let vx = 0;
+    let vy = 0;
+    let gravity = 1;
+    let coins = [];
+
+    function drawPlayer() {
+      ctx.fillStyle = "#ff9900";
+      ctx.fillRect(x, y, 30, 30);
+    }
+
+    function drawCoins() {
+      ctx.fillStyle = "#00cc66";
+      coins.forEach((coin, i) => {
+        coin.x -= 2;
+        ctx.beginPath();
+        ctx.arc(coin.x, coin.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        if (coin.x < -10) coins.splice(i, 1);
+        if (
+          x < coin.x + 10 &&
+          x + 30 > coin.x &&
+          y < coin.y + 10 &&
+          y + 30 > coin.y
+        ) {
+          score++;
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("highScore", highScore);
+            highScoreDisplay.textContent = highScore;
+          }
+          scoreDisplay.textContent = score;
+          coins.splice(i, 1);
+        }
+      });
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawCoins();
+
+      vy += gravity;
+      x += vx;
+      y += vy;
+
+      // Bounds
+      if (x < 0) x = 0;
+      if (x > canvas.width - 30) x = canvas.width - 30;
+      if (y > canvas.height - 30) {
+        y = canvas.height - 30;
+        vy = 0;
+      }
+
+      if (Math.random() < 0.02) {
+        coins.push({ x: canvas.width + 20, y: Math.random() * (canvas.height - 20) });
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Controls
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") vy = -15;
+      if (e.key === "ArrowLeft") vx = -5;
+      if (e.key === "ArrowRight") vx = 5;
+    });
+    document.addEventListener("keyup", () => {
+      vx = 0;
+    });
+
+    gameLoop();
+
+    // Web3 Wallet Connect
+    async function connectWallet() {
+      if (window.ethereum) {
+        try {
+          const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+          alert(`Wallet connected: ${accounts[0]}`);
+        } catch (err) {
+          alert('Wallet connection denied.');
+        }
+      } else {
+        alert('MetaMask not found. Please install MetaMask.');
+      }
+    }
+
+    // Meme Upload Gallery
+    document.getElementById("memeUpload").addEventListener("change", function (event) {
+      const file = event.target.files[0];
+      if (file && file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          document.getElementById("memeGallery").appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+</html>
